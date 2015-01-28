@@ -2,6 +2,9 @@
 // Kernel RaiX 2014
 ////////////////////////////////////////////////////////////////////////////////
 
+// Timed functions
+var timedFunctions = [];
+
 // General render engine
 var renderFunctions = [];
 
@@ -17,9 +20,22 @@ Kernel.maxDeferedLength = 100;
 // Debug flag
 Kernel.debug = false;
 
+// DOMHighResTimeStamp - High resolution timestamp polyfil
+var Time = (window.performance && window.performance.now) ?
+        window.performance : Date;
+
+/**
+ * Return the current timestamp in high resolution
+ * @return {Number}
+ */
+Kernel.now = function() {
+  return Time.now();
+};
+
 /**
  * Run render function
  * @param  {function}   Function to run in frame
+ * @return {Kernel}
  */
 Kernel.onRender = function onRender(f) {
   renderFunctions.push(f);
@@ -29,9 +45,24 @@ Kernel.onRender = function onRender(f) {
 /**
  * Run function when theres time for it in the render loop
  * @param  {function}   Function to run in frame when time permits it
+ * @return {Kernel}
  */
 Kernel.defer = function defer(f) {
   deferedFunctions.push(f);
+  return Kernel;
+};
+
+/**
+ * Run a function at a fixed timestamp
+ * @param  {function}
+ * @param  {Number}
+ * @return {Kernel}
+ */
+Kernel.timed = function timed(f, runAt) {
+  timedFunctions.push({
+    f: f,
+    runAt: runAt
+  });
   return Kernel;
 };
 
@@ -108,7 +139,7 @@ var lastTimeStamp = null;
 
 Kernel.loop = function renderLoop() {
   // Get timestamp
-  var timestamp = +new Date();
+  var timestamp = Kernel.now();
 
   // Request animation frame at the beginning trying to maintain 60fps
   window.requestAnimationFrame(Kernel.loop);
@@ -121,6 +152,24 @@ Kernel.loop = function renderLoop() {
 
   // Increase the frame counter
   Kernel.currentFrame++;
+
+  // Set current timed functions
+  var currentTimedFunctions = timedFunctions;
+
+  // Reset timedFunctions
+  timedFunctions = [];
+
+  for (var i = 0; i < currentTimedFunctions.length; i++) {
+    var timedFunction = currentTimedFunctions[i];
+
+    if (timedFunction.runAt > timestamp) {
+      // not ready yet, maybe next tick
+      timedFunctions.push(timedFunction);
+    } else {
+      // Ready...
+      timedFunction.f(timedFunction.runAt, timestamp, lastTimeStamp, Kernel.currentFrame);
+    }
+  }
 
   // Run all render functions
   var renderLength = renderFunctions.length;
@@ -147,7 +196,7 @@ Kernel.loop = function renderLoop() {
   }
 
   // Run defered functions - in the defered time frame
-  while (deferedFunctions.length && (Date.now() - timestamp) < Kernel.deferedTimeLimit) {
+  while (deferedFunctions.length && (Kernel.now() - timestamp) < Kernel.deferedTimeLimit) {
 
     // Display debug info
     if (Kernel.debug && displayDeferedCount) {

@@ -17,6 +17,16 @@ The first part of the api is a bit more hidden since its actually overwriting Me
 ### Three ways to run functions in the animation frame
 The api consists of 3 functions with some alias functions. They all return the `Kernel` object so they are chainable.
 
+`Kernel.now` - Returns the high resolution timestamp.
+
+`Kernel.timed` - Run a function at a certain time.
+```js
+  var runAt = Kernel.now() + 1000; // Run a sec from now
+  Kernel.timed(function(runAt, timestamp, lasttimestamp, frame) {
+    // Run this function a sec from now
+  }, runAt);
+```
+
 `Kernel.onRender` alias `Kernel.run` - Run a function in the next animation frame.
 ```js
   Kernel.run(function(timestamp, lastTimestamp, currentFrameNumber) {
