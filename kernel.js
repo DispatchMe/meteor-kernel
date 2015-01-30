@@ -66,6 +66,71 @@ Kernel.timed = function timed(f, runAt) {
   return Kernel;
 };
 
+var _nextTimerReferenceId = 0;
+var _timerRunning = {};
+
+var _initTimer = function() {
+  // Get id
+  var id = _nextTimerReferenceId++;
+  // Set the timer to run
+  _timerRunning[id] = true;
+  // Return id
+  return id;
+};
+
+/**
+ * Kernel.setTimeout
+ * @param {Function}
+ * @param {delay}
+ */
+Kernel.setTimeout = function(f, delay) {
+  // Initialize timer reference
+  var id = _initTimer();
+
+  Kernel.timed(function() {
+    if (_timerRunning[id]) {
+      // Run the function
+      f();
+    }
+  }, Kernel.now() + delay);
+
+  // Return clear id
+  return id;
+};
+
+Kernel.setInterval = function(f, interval) {
+  // Initialize timer reference
+  var id = _initTimer();
+
+  // Calc the next run
+  var nextRun = Kernel.now() + interval;
+
+  // The interval function
+  var intervalFunction = function intervalFunction() {
+    if (_timerRunning[id]) {
+      // Calc the next run
+      nextRun += interval;
+      // Add the next run to the queue
+      Kernel.timed(intervalFunction, nextRun);
+      // Run the function
+      f();
+    }
+  };
+
+  // Initial run
+  Kernel.timed(intervalFunction, nextRun);
+
+  // Return clear id
+  return id;
+};
+
+Kernel.clearTimeout = function clearTimer(id) {
+  // Remove the timeout
+  delete _timerRunning[id];
+};
+
+Kernel.clearInterval = Kernel.clearTimeout;
+
 /**
  * Create alias function for defer
  * @type {[type]}
