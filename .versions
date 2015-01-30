@@ -1,4 +1,4 @@
-dispatch:kernel@0.0.1
+dispatch:kernel@0.0.2
 dispatch:request-animation-frame@0.0.1
 meteor@1.1.4
 tracker@1.0.5
