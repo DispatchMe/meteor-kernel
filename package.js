@@ -12,12 +12,14 @@ Package.onUse(function (api) {
 
   api.use([
     'tracker',
+    'blaze',
     'meteor',
     'dispatch:request-animation-frame@0.0.1',
     'underscore',
   ], 'web');
 
   api.addFiles([
-    'kernel.js'
+    'kernel.js',
+    'meteor.js'
   ], 'web');
 });

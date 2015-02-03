@@ -8,11 +8,16 @@ The kernel helps you run functions in sync using the animation frame. It also al
 The reason for this is to flatten ui functions to help keep a stable frame rate.
 
 ## Api
-The first part of the api is a bit more hidden since its actually overwriting Meteor behaviour pr. default regarding `Tracker.autorun`.
+The first part of the api is a bit more hidden since its actually overwriting Meteor behaviour pr. default regarding:
 
-`Kernel.deferAutorun` overwrites `Meteor.autorun` and `Tracker.autorun` - This flattens out spikes a bit when invalidations are triggered.
+* `Blaze.autorun`
+* `Meteor.setTimeout`
+* `Meteor.setInterval`
+* `Meteor.clearTimeout`
+* `Meteor.clearInterval`
+* `Meteor.defer`
 
-`Kernel.autorun` is the original Meteor autorun.
+`Kernel.autorun` This flattens out spikes a bit when invalidations are triggered. The first run is run at intialization but is otherwise async / defered, so the computation isnt run just af triggering `Tracker.flush()` or an invalidation.
 
 ### Three ways to run functions in the animation frame
 The api consists of 3 functions with some alias functions. They all return the `Kernel` object so they are chainable.
