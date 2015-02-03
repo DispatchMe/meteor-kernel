@@ -1,6 +1,6 @@
 Package.describe({
   name: 'dispatch:kernel',
-  version: '0.0.2',
+  version: '0.0.3',
   summary: 'Run tasks in animation frame directly and throttled',
   git: 'https://github.com/DispatchMe/meteor-kernel.git'
 });
