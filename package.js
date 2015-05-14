@@ -15,11 +15,25 @@ Package.onUse(function (api) {
     'blaze',
     'meteor',
     'dispatch:request-animation-frame@0.0.1',
-    'underscore',
+    'underscore'
   ], 'web');
 
   api.addFiles([
     'kernel.js',
     'meteor.js'
+  ], 'web');
+});
+
+
+Package.onTest(function (api) {
+  api.use([
+    'reactive-var',
+    'tinytest',
+    'underscore',
+    'dispatch:kernel'
+  ], 'web');
+
+  api.addFiles([
+    'tests.js'
   ], 'web');
 });
