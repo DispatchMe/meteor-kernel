@@ -34,7 +34,6 @@ Tinytest.addAsync('Kernel.autorun -- throttled', function (test, done) {
   Kernel.autorun(function () {
     rerun.get();
     counter++;
-    console.log('counter', counter);
   }, {throttle: 8});
 
   // Should run once on initial computation
