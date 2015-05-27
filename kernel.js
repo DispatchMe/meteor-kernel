@@ -164,19 +164,24 @@ Kernel.autorun = function(f) {
     } else {
       // On reruns we defer via the kernel
       Kernel.defer(function() {
-        // Store current computation
-        var prev = Tracker.currentComputation;
+        // Make sure not to run if computation have been stopped
+        if (!c.stopped) {
 
-        // Set the new computation
-        Tracker.currentComputation = c;//thisComputation;
-        Tracker.active = !! Tracker.currentComputation;
+          // Store current computation
+          var prev = Tracker.currentComputation;
 
-        // Call function
-        f.call(this, c);
+          // Set the new computation
+          Tracker.currentComputation = c;//thisComputation;
+          Tracker.active = !! Tracker.currentComputation;
 
-        // Switch back
-        Tracker.currentComputation = prev;
-        Tracker.active = !! Tracker.currentComputation;
+          // Call function
+          f.call(this, c);
+
+          // Switch back
+          Tracker.currentComputation = prev;
+          Tracker.active = !! Tracker.currentComputation;
+
+        }
       });
 
     }
