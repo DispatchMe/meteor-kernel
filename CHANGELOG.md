@@ -2,6 +2,12 @@
 
 ## vCurrent
 ## [v0.0.3] (https://github.com/DispatchMe/meteor-kernel/tree/v0.0.3)
+#### 05/14/15 by Jon Perl
+- Bump to version 0.0.4
+
+- Added Kernel.debounce, Kernel.throttle, and added debounce and throttle options to autorun
+
+## [v0.0.3] (https://github.com/DispatchMe/meteor-kernel/tree/v0.0.3)
 #### 03/02/15 by Morten Henriksen
 - Bump to version 0.0.3
 

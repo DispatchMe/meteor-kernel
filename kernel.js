@@ -131,6 +131,58 @@ Kernel.clearTimeout = function clearTimer(id) {
 
 Kernel.clearInterval = Kernel.clearTimeout;
 
+Kernel.debounce = function(func, wait, immediate) {
+  var timeout, args, context, timestamp, result;
+  return function() {
+    context = this;
+    args = arguments;
+    timestamp = new Date();
+    var later = function() {
+      var last = (new Date()) - timestamp;
+      if (last < wait) {
+        timeout = Kernel.setTimeout(later, wait - last);
+      } else {
+        timeout = null;
+        if (!immediate) result = func.apply(context, args);
+      }
+    };
+    var callNow = immediate && !timeout;
+    if (!timeout) {
+      timeout = Kernel.setTimeout(later, wait);
+    }
+    if (callNow) result = func.apply(context, args);
+    return result;
+  };
+};
+
+Kernel.throttle = function(func, wait, options) {
+  var context, args, result;
+  var timeout = null;
+  var previous = 0;
+  options = options || {};
+  var later = function () {
+    previous = options.leading === false ? 0 : new Date();
+    timeout = null;
+    result = func.apply(context, args);
+  };
+  return function () {
+    var now = new Date();
+    if (!previous && options.leading === false) previous = now;
+    var remaining = wait - (now - previous);
+    context = this;
+    args = arguments;
+    if (remaining <= 0) {
+      Kernel.clearTimeout(timeout);
+      timeout = null;
+      previous = now;
+      result = func.apply(context, args);
+    } else if (!timeout && options.trailing !== false) {
+      timeout = Kernel.setTimeout(later, remaining);
+    }
+    return result;
+  };
+};
+
 /**
  * Create alias function for defer
  * @type {[type]}
@@ -156,34 +208,53 @@ Kernel.each = function KernelEach(items, f) {
   return Kernel;
 };
 
-Kernel.autorun = function(f) {
+/**
+ * Autorun when the
+ * @param f The function to autorun.
+ * @param [options]
+ * [options.debounce] Postpone the execution until after debounce
+ * milliseconds have elapsed since the last time it was invoked.
+ * [options.throttle] Only call the original function at most
+ * once per every wait milliseconds.
+ * @returns {Tracker.Computation}
+ */
+Kernel.autorun = function(f, options) {
+  var later = function(c) {
+    // Make sure not to run if computation have been stopped
+    if (!c.stopped) {
+      // Store current computation
+      var prev = Tracker.currentComputation;
+
+      // Set the new computation
+      Tracker.currentComputation = c;//thisComputation;
+      Tracker.active = !! Tracker.currentComputation;
+
+      // Call function
+      f.call(this, c);
+
+      // Switch back
+      Tracker.currentComputation = prev;
+      Tracker.active = !! Tracker.currentComputation;
+
+    }
+  };
+
+  if (options && options.debounce) {
+    later = Kernel.debounce(later, options.debounce);
+  }
+  else if (options && options.throttle) {
+    later = Kernel.throttle(later, options.throttle);
+  }
+
   return Tracker.autorun(function KernelComputation(c) {
     if (c.firstRun) {
       // Let the first run be run normally
       f.call(this, c);
     } else {
       // On reruns we defer via the kernel
-      Kernel.defer(function() {
-        // Make sure not to run if computation have been stopped
-        if (!c.stopped) {
-
-          // Store current computation
-          var prev = Tracker.currentComputation;
-
-          // Set the new computation
-          Tracker.currentComputation = c;//thisComputation;
-          Tracker.active = !! Tracker.currentComputation;
-
-          // Call function
-          f.call(this, c);
-
-          // Switch back
-          Tracker.currentComputation = prev;
-          Tracker.active = !! Tracker.currentComputation;
-
-        }
+      Kernel.defer(function () {
+        later(c);
       });
-
     }
   });
 };
@@ -324,7 +395,7 @@ Kernel.loop = function renderLoop() {
 
   // Set last time stamp
   lastTimeStamp = timestamp;
-}
+};
 
 
 // Initialize render loop
